@@ -1,0 +1,2 @@
+ffmpeg-python==0.2.0           # For interacting with FFmpeg programmatically
+schedule==1.2.0                # For scheduling tasks (like hourly recordings)
