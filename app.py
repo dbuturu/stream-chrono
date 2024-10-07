@@ -3,7 +3,6 @@ import ffmpeg
 import time
 import datetime
 import threading
-import schedule
 import configparser  # Module to load the config.ini file
 from functools import wraps
 
@@ -42,7 +41,8 @@ def retry_on_failure(
                         } seconds... (Retry {retries}/{max_retries})")
                         time.sleep(sleep_time)
                     else:
-                        print(f"Max retries reached for {func.__name__}. Exiting.")
+                        print(f"Max retries reached for {
+                              func.__name__}. Exiting.")
                         raise
 
         return wrapper
@@ -75,7 +75,8 @@ def clean_audio(input_stream):
     )
 
 
-# Unified function to capture, clean, and process audio for both streaming and recording
+# Unified function to capture, clean, and
+# process audio for both streaming and recording
 @retry_on_failure()
 def process_audio(stream_to_icecast=True, save_locally=True):
     # Use pulse instead of ALSA for audio input
@@ -143,7 +144,8 @@ def schedule_recording():
         time_until_next_hour = (next_hour - now).total_seconds()
 
         print(
-            f"Waiting {time_until_next_hour:.0f} seconds until the next hour starts..."
+            f"Waiting {time_until_next_hour:.0f} seconds"
+            "until the next hour starts..."
         )
 
         # Sleep until the top of the next hour
@@ -151,7 +153,10 @@ def schedule_recording():
 
         # Start the recording at the top of the hour in a new thread
         threading.Thread(
-            target=lambda: process_audio(stream_to_icecast=False, save_locally=True)
+            target=lambda: process_audio(
+                stream_to_icecast=False,
+                save_locally=True,
+            )
         ).start()
 
         print(f"Started recording at {next_hour.strftime('%H:%M')}")
@@ -162,9 +167,13 @@ def schedule_recording():
 
 # Control logic to manage both streaming and recording
 def control_logic():
-    # Start audio processing for both streaming and recording in a separate thread
+    # Start audio processing for both
+    # streaming and recording in a separate thread
     capture_thread = threading.Thread(
-        target=lambda: process_audio(stream_to_icecast=True, save_locally=True)
+        target=lambda: process_audio(
+            stream_to_icecast=True,
+            save_locally=True,
+        )
     )
     capture_thread.start()
 
