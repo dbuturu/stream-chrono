@@ -83,7 +83,8 @@ def process_audio(stream_to_icecast=True, save_locally=True):
     input_stream = ffmpeg.input("default", f="pulse")  # pulse input
 
     # Clean the audio stream
-    cleaned_stream = clean_audio(input_stream)
+    # cleaned_stream = clean_audio(input_stream)
+    cleaned_stream = input_stream
 
     # Split the cleaned stream if we are both streaming and saving locally
     if stream_to_icecast and save_locally:
