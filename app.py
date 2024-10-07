@@ -99,8 +99,8 @@ def process_audio(stream_to_icecast=True, save_locally=True):
         icecast_output = ffmpeg.output(
             split_stream[0],  # Use the first stream for streaming
             f"icecast://voltron:{ICECAST_PASSWORD}@{ICECAST_URL}",
-            acodec="libmp3lame",
-            format="mp3",
+            acodec="libopus",
+            format="ogg",
         )
 
     # Save to local file if required
