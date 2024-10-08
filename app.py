@@ -78,27 +78,29 @@ def clean_audio(input_stream):
 @retry_on_failure()
 def process_audio(stream_to_icecast=True, save_locally=True):
     # Use pulse instead of ALSA for audio input
-    input_stream = ffmpeg.input("default", f="pulse")  # pulse input
+    input_stream = ffmpeg.input("hw:0,0", f="ALSA")  # pulse input
 
     # Clean the audio stream
     cleaned_stream = clean_audio(input_stream)
-    # cleaned_stream = input_stream
 
     # Split the cleaned stream if we are both streaming and saving locally
     if stream_to_icecast and save_locally:
-        split_stream = cleaned_stream.filter_multi_output(
-            "asplit", 2
-        )  # Splitting into 2 streams
+        split_stream = cleaned_stream.filter_multi_output("asplit", 2)
     else:
-        split_stream = [cleaned_stream]  # Only one output needed
+        split_stream = [cleaned_stream]  # Single stream
 
-    # Stream to Icecast if required
+    # Remux and stream to Icecast without saving a file
     if stream_to_icecast:
-        icecast_output = ffmpeg.output(
-            split_stream[0],  # Use the first stream for streaming
-            f"icecast://voltron:{ICECAST_PASSWORD}@{ICECAST_URL}",
-            acodec="libopus",
-            format="ogg",
+        (
+            ffmpeg.output(
+                split_stream[0],  # First stream goes to Icecast
+                f"icecast://source:{ICECAST_PASSWORD}@{ICECAST_URL}",
+                acodec="libopus",  # Ogg/Opus codec for streaming
+                format="ogg",  # Set format to ogg
+                content_type="application/ogg",  # Set content type header
+                audio_bitrate="96k",  # Bitrate for Icecast stream
+                buffer_size="512k",  # Buffer size
+            ).run()
         )
 
     # Save to local file if required
@@ -108,22 +110,17 @@ def process_audio(stream_to_icecast=True, save_locally=True):
         filename = f"testfm_{current_time.strftime('%Y-%m-%d_%H-%M-%S')}.mp3"
         file_path = os.path.join(directory, filename)
 
+        # Output the second stream to MP3 for local recording
         local_output = ffmpeg.output(
             split_stream[-1],  # Use the second stream for local recording
             file_path,
-            acodec="libmp3lame",
-            format="mp3",
-            audio_bitrate="192k",  # Increase bitrate for better quality
-            qscale="2",  # Set variable bitrate quality (lower value is better)
+            acodec="libmp3lame",  # MP3 codec
+            format="mp3",  # Output format
+            audio_bitrate="192k",  # Higher bitrate for local recording
             t="01:10:00",  # Record for 1 hour 10 minutes
+            qscale="2",  # Quality scale for MP3
         )
 
-    # Combine the outputs and execute
-    if stream_to_icecast and save_locally:
-        ffmpeg.merge_outputs(icecast_output, local_output).run()
-    elif stream_to_icecast:
-        icecast_output.run()
-    elif save_locally:
         local_output.run()
 
 
