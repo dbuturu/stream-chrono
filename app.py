@@ -120,7 +120,7 @@ def process_audio(stream_to_icecast=True, save_locally=True):
             format="mp3",  # Output format
             audio_bitrate="192k",  # Higher bitrate for local recording
             t="01:10:00",  # Record for 1 hour 10 minutes
-            qscale="2",  # Quality scale for MP3
+            q_a="2",  # Quality scale for MP3
         )
 
         local_output.run()
