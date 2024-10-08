@@ -65,13 +65,11 @@ def create_directory_structure():
 # Function to clean the audio using FFmpeg filters
 def clean_audio(input_stream):
     return (
-        input_stream.filter(
-            "highpass", f=200
-        )  # Remove low-frequency hum (below 200 Hz)
-        .filter("lowpass", f=3000)  # Remove high-frequency noise (above 3 kHz)
-        # Noise reduction, default noise amount is 15 dB
-        .filter("afftdn", nr=15)
-        .filter("loudnorm")  # Apply volume normalization
+        input_stream.filter("highpass", f=80)  # Improved bass
+        .filter("lowpass", f=12000)  # Keep treble details
+        .filter("afftdn", nr=12, nt="w")  # Adaptive noise reduction
+        .filter("dynaudnorm", p=0.6, m=100)  # Dynamic range compression
+        .filter("loudnorm", I=-16, TP=-1.5, LRA=11)  # Loudness normalization
     )
 
 
@@ -83,8 +81,8 @@ def process_audio(stream_to_icecast=True, save_locally=True):
     input_stream = ffmpeg.input("default", f="pulse")  # pulse input
 
     # Clean the audio stream
-    # cleaned_stream = clean_audio(input_stream)
-    cleaned_stream = input_stream
+    cleaned_stream = clean_audio(input_stream)
+    # cleaned_stream = input_stream
 
     # Split the cleaned stream if we are both streaming and saving locally
     if stream_to_icecast and save_locally:
@@ -115,6 +113,8 @@ def process_audio(stream_to_icecast=True, save_locally=True):
             file_path,
             acodec="libmp3lame",
             format="mp3",
+            audio_bitrate="192k",  # Increase bitrate for better quality
+            qscale="2",  # Set variable bitrate quality (lower value is better)
             t="01:10:00",  # Record for 1 hour 10 minutes
         )
 
