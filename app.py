@@ -68,7 +68,7 @@ def clean_audio(input_stream):
         input_stream.filter("highpass", f=80)  # Improved bass
         .filter("lowpass", f=12000)  # Keep treble details
         .filter("afftdn", nr=12, nt="w")  # Adaptive noise reduction
-        .filter("dynaudnorm", p=0.6, m=100)  # Dynamic range compression
+        # .filter("dynaudnorm", p=0.6, m=100)  # Dynamic range compression
         .filter("loudnorm", I=-16, TP=-1.5, LRA=11)  # Loudness normalization
     )
 
@@ -78,7 +78,7 @@ def clean_audio(input_stream):
 @retry_on_failure()
 def process_audio(stream_to_icecast=True, save_locally=True):
     # Use pulse instead of ALSA for audio input
-    input_stream = ffmpeg.input("hw:0,0", f="ALSA")  # pulse input
+    input_stream = ffmpeg.input("default", f="pulse")  # pulse input
 
     # Clean the audio stream
     cleaned_stream = clean_audio(input_stream)
