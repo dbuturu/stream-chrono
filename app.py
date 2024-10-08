@@ -36,9 +36,11 @@ def retry_on_failure(
                     retries += 1
                     if retries < max_retries:
                         sleep_time = delay * (backoff ** (retries - 1))
-                        print(f"Error in {func.__name__}: {e}. Retrying in {
-                            sleep_time
-                        } seconds... (Retry {retries}/{max_retries})")
+                        print(
+                            f"Error in {func.__name__}: {e}. "
+                            f"Retrying in {sleep_time} seconds... "
+                            f"(Retry {retries}/{max_retries})"
+                        )
                         time.sleep(sleep_time)
                     else:
                         print(f"Max retries reached for {
@@ -142,7 +144,7 @@ def schedule_recording():
         time_until_next_hour = (next_hour - now).total_seconds()
 
         print(
-            f"Waiting {time_until_next_hour:.0f} seconds"
+            f"Waiting {time_until_next_hour:.0f} seconds "
             "until the next hour starts..."
         )
 
