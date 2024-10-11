@@ -78,9 +78,29 @@ def clean_audio(input_stream):
 # Unified function to capture, clean, and
 # process audio for both streaming and recording
 @retry_on_failure()
-def process_audio(stream_to_icecast=True, save_locally=True):
-    # Use pulse instead of ALSA for audio input
-    input_stream = ffmpeg.input("default", f="pulse")  # pulse input
+def process_audio(
+    input_source="default",
+    input_is_network=False,
+    stream_to_icecast=True,
+    save_locally=True,
+):
+    """
+    Process audio input and handle streaming to Icecast and/or saving locally.
+
+    Parameters:
+    - input_source: The source for the audio input. Defaults to "default" for local audio.
+    - input_is_network: Boolean indicating if the input source is a network stream (e.g., HTTP).
+    - stream_to_icecast: Whether to stream the audio to Icecast.
+    - save_locally: Whether to save the audio locally.
+    """
+
+    # Select the input based on whether it is a network stream
+    if input_is_network:
+        # Network stream input (e.g., HTTP, RTMP)
+        input_stream = ffmpeg.input(input_source)
+    else:
+        # Use pulse as the default input for local audio (e.g., microphone)
+        input_stream = ffmpeg.input("default", f="pulse")
 
     # Clean the audio stream
     cleaned_stream = clean_audio(input_stream)
