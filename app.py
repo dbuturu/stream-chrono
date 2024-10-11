@@ -12,6 +12,7 @@ config.read("config.ini")
 
 # Load values from the config.ini
 ICECAST_URL = config.get("Icecast", "URL")
+ICECAST_USERNAME = config.get("Icecast", "Username")
 ICECAST_PASSWORD = config.get("Icecast", "Password")
 REMOTE_SERVER = config.get("RemoteServer", "SyncPath")
 
@@ -116,7 +117,7 @@ def process_audio(
         (
             ffmpeg.output(
                 split_stream[0],  # First stream goes to Icecast
-                f"icecast://source:{ICECAST_PASSWORD}@{ICECAST_URL}",
+                f"icecast://{ICECAST_USERNAME}:{ICECAST_PASSWORD}@{ICECAST_URL}",
                 acodec="libopus",  # Ogg/Opus codec for streaming
                 format="ogg",  # Set format to ogg
                 content_type="application/ogg",  # Set content type header
