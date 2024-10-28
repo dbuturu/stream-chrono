@@ -1,0 +1,30 @@
+name: Python package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install Nox
+        run: pip install nox
+      - name: Run Tests
+        run: nox -s tests
+      - name: Lint Code
+        run: nox -s lint
+      - name: Build Package
+        run: nox -s build
+      - name: Upload to GitHub Packages
+        env:
+          TWINE_USERNAME: ${{ github.actor }}
+          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: nox -s upload
