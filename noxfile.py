@@ -3,10 +3,8 @@ import nox
 
 @nox.session
 def tests(session):
-    """Run test suite."""
-    session.install("pytest")  # Install testing dependencies
-    session.install(".")  # Install the package
-    session.run("pytest")  # Run tests
+    session.install("ffmpeg-python")  # Add other dependencies as needed
+    session.run("python", "-m", "unittest", "discover", "-s", "tests")
 
 
 @nox.session
