@@ -1,5 +1,5 @@
 import ffmpeg
-from chrono_streamer.audio_processor import clean_audio
+from chronostreamer.audio_processor import clean_audio
 
 
 def test_clean_audio():

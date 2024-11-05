@@ -1,4 +1,4 @@
-from chrono_streamer.utils import load_config
+from chronostreamer.utils import load_config
 
 
 def test_load_config(tmp_path):
