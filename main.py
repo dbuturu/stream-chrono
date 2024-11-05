@@ -1,7 +1,7 @@
-from chrono_streamer.audio_processor import process_audio, schedule_recording
-from chrono_streamer.sync_manager import sync_to_remote_server
+from chronostreamer.audio_processor import process_audio, schedule_recording
+from chronostreamer.sync_manager import sync_to_remote_server
 import threading
-from chrono_streamer.utils import load_config
+from chronostreamer.utils import load_config
 
 # Load configuration for the remote server path
 config = load_config()

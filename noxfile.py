@@ -3,8 +3,8 @@ import nox
 
 @nox.session
 def tests(session):
-    session.install("ffmpeg-python")  # Add other dependencies as needed
-    session.run("python", "-m", "unittest", "discover", "-s", "tests")
+    session.install("pytest", "ffmpeg-python")
+    session.run("pytest", "tests", env={"PYTHONPATH": "src"})
 
 
 @nox.session
