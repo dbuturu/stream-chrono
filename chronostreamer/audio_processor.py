@@ -75,8 +75,8 @@ def process_audio(
 
     if save_locally:
         directory = create_directory_structure()
-        filename = f"testfm_{
-            datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp3"
+        datetime_now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"testfm_{datetime_now}.mp3"
         ffmpeg.output(
             split_stream[-1],
             os.path.join(directory, filename),

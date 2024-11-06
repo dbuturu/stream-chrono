@@ -1,13 +1,11 @@
 name: Python package
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,6 +19,9 @@ jobs:
         run: nox -s tests
       - name: Lint Code
         run: nox -s lint
+  build:
+    runs-on: ubuntu-latest
+    steps:
       - name: Build Package
         run: nox -s build
       - name: Upload to GitHub Packages
