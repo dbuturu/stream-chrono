@@ -1,6 +1,10 @@
 import os
 import time
-from chronostreamer.utils import retry_on_failure, deferred_config_reload, load_config
+from chronostreamer.utils import (
+    retry_on_failure,
+    deferred_config_reload,
+    load_config,
+)
 
 # Load configuration for the remote server path
 config = load_config()
@@ -8,6 +12,7 @@ config = load_config()
 # Get initial config values
 SYNC_INTERVAL = config.getint("ScheduleSettings", "SyncInterval")
 REMOTE_SERVER_PATH = config.get("RemoteServer", "SyncPath")
+
 
 @retry_on_failure()
 def sync_to_remote_server(remote_path):
