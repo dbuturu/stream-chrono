@@ -1,11 +1,6 @@
 import threading
 from chronostreamer.audio_processor import process_audio, schedule_recording
-from chronostreamer.sync_manager import sync_to_remote_server
-from chronostreamer.utils import load_config
-
-# Load configuration for the remote server path
-config = load_config()
-REMOTE_SERVER_PATH = config.get("RemoteServer", "SyncPath")
+from chronostreamer.sync_manager import scheduled_sync
 
 
 def control_logic():
@@ -15,11 +10,7 @@ def control_logic():
             save_locally=True,
         )
     ).start()
-    threading.Thread(
-        target=lambda: sync_to_remote_server(
-            REMOTE_SERVER_PATH,
-        )
-    ).start()
+    threading.Thread(target=scheduled_sync).start()
     schedule_recording()
 
 
