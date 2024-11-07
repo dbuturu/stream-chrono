@@ -3,6 +3,14 @@ import configparser
 from functools import wraps
 
 
+def deferred_config_reload():
+    """Reloads configuration settings dynamically for scheduled tasks."""
+    global config, SYNC_INTERVAL, REMOTE_SERVER_PATH
+    config = load_config()
+    SYNC_INTERVAL = config.getint("ScheduleSettings", "SyncInterval")
+    REMOTE_SERVER_PATH = config.get("RemoteServer", "SyncPath")
+
+
 def load_config(config_file="config.ini"):
     """Load configuration from a specified INI file."""
     config = configparser.ConfigParser()
@@ -17,6 +25,7 @@ def retry_on_failure(max_retries=3, delay=1, backoff=2):
             retries = 0
             while retries < max_retries:
                 try:
+                    deferred_config_reload()
                     return func(*args, **kwargs)
                 except Exception as e:
                     retries += 1

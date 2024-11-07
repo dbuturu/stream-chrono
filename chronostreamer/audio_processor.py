@@ -3,7 +3,7 @@ import ffmpeg
 import time
 import threading
 from datetime import datetime, timedelta
-from chronostreamer.utils import retry_on_failure, load_config
+from chronostreamer.utils import retry_on_failure, load_config, deferred_config_reload
 
 # Load configuration from config.ini
 config = load_config()
@@ -63,32 +63,45 @@ def process_audio(
     )
 
     if stream_to_icecast:
-        ffmpeg.output(
-            split_stream[0],
-            f"icecast://{ICECAST_USERNAME}:{ICECAST_PWD}@{ICECAST_URL}",
-            acodec="libopus",
-            format="ogg",
-            content_type="application/ogg",
-            audio_bitrate="96k",
-            buffer_size="512k",
-        ).global_args("-hide_banner").run()
+        threading.Thread(
+            target=lambda: output_to_icecast(split_stream)
+        ).start()
 
     if save_locally:
-        directory = create_directory_structure()
-        datetime_now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"testfm_{datetime_now}.mp3"
-        ffmpeg.output(
-            split_stream[-1],
-            os.path.join(directory, filename),
-            acodec="libmp3lame",
-            format="mp3",
-            audio_bitrate="192k",
-            t="01:10:00",
-        ).global_args("-hide_banner").run()
+        threading.Thread(
+            target=lambda: output_to_file(split_stream)
+        ).start()
+
+
+def output_to_icecast(split_stream):
+    ffmpeg.output(
+        split_stream[0],
+        f"icecast://{ICECAST_USERNAME}:{ICECAST_PWD}@{ICECAST_URL}",
+        acodec="libopus",
+        format="ogg",
+        content_type="application/ogg",
+        audio_bitrate="96k",
+        buffer_size="512k",
+    ).global_args("-hide_banner").run()
+
+
+def output_to_file(split_stream):
+    directory = create_directory_structure()
+    datetime_now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"testfm_{datetime_now}.mp3"
+    ffmpeg.output(
+        split_stream[-1],
+        os.path.join(directory, filename),
+        acodec="libmp3lame",
+        format="mp3",
+        audio_bitrate="192k",
+        t="01:10:00",
+    ).global_args("-hide_banner").run()
 
 
 def schedule_recording():
     while True:
+        deferred_config_reload()
         next_hour = (datetime.now() + timedelta(hours=1)).replace(
             minute=0, second=0, microsecond=0
         )
