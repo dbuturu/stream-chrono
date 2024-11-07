@@ -3,7 +3,11 @@ import ffmpeg
 import time
 import threading
 from datetime import datetime, timedelta
-from chronostreamer.utils import retry_on_failure, load_config, deferred_config_reload
+from chronostreamer.utils import (
+    retry_on_failure,
+    load_config,
+    deferred_config_reload,
+)
 
 # Load configuration from config.ini
 config = load_config()
@@ -64,13 +68,10 @@ def process_audio(
 
     if stream_to_icecast:
         threading.Thread(
-            target=lambda: output_to_icecast(split_stream)
-        ).start()
+            target=lambda: output_to_icecast(split_stream)).start()
 
     if save_locally:
-        threading.Thread(
-            target=lambda: output_to_file(split_stream)
-        ).start()
+        threading.Thread(target=lambda: output_to_file(split_stream)).start()
 
 
 def output_to_icecast(split_stream):
