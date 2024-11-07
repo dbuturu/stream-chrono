@@ -84,7 +84,6 @@ def process_audio(
             format="mp3",
             audio_bitrate="192k",
             t="01:10:00",
-            q_a="2",
         ).global_args("-hide_banner").run()
 
 
