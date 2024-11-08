@@ -16,9 +16,30 @@ config = load_config()
 ICECAST_URL = config.get("Icecast", "URL")
 ICECAST_USERNAME = config.get("Icecast", "Username")
 ICECAST_PWD = config.get("Icecast", "Password")
+MOUNT_POINT = config.get("Icecast", "MountPoint")
 MAX_RETRIES = config.getint("RetrySettings", "MaxRetries")
 RETRY_DELAY = config.getint("RetrySettings", "RetryDelay")
 BACKOFF_FACTOR = config.getint("RetrySettings", "BackoffFactor")
+
+# Load audio processing settings
+HIGHPASS_FILTER = config.getint("AudioSettings", "HighPassFilter")
+LOWPASS_FILTER = config.getint("AudioSettings", "LowPassFilter")
+NOISE_REDUCTION = config.getint("AudioSettings", "NoiseReduction")
+NOISE_TYPE = config.get("AudioSettings", "NoiseType")
+INTEGRATED_LOUDNESS_TARGET = config.getfloat("AudioSettings", "IntegratedLoudnessTarget")
+LOUDNESS_RANGE_TARGET = config.getint("AudioSettings", "LoudnessRangeTarget")
+TRUE_PEAK = config.getfloat("AudioSettings", "TruePeak")
+AUDIO_CODEC = config.get("AudioSettings", "AudioCodec")
+AUDIO_FORMAT = config.get("AudioSettings", "AudioFormat")
+STREAM_AUDIO_BITRATE = config.get("AudioSettings", "AudioBitrate")
+BUFFER_SIZE = config.get("AudioSettings", "BufferSize")
+
+# Load local recording settings
+LOCAL_AUDIO_CODEC = config.get("LocalRecording", "AudioCodec")
+LOCAL_AUDIO_FORMAT = config.get("LocalRecording", "AudioFormat")
+LOCAL_AUDIO_BITRATE = config.get("LocalRecording", "AudioBitrate")
+FILE_LENGTH = config.get("LocalRecording", "FileLength")
+RECORDING_ROOT_DIR = config.get("LocalRecording", "RecordingRootDir") #"recordings"
 
 
 @retry_on_failure(
@@ -29,8 +50,8 @@ BACKOFF_FACTOR = config.getint("RetrySettings", "BackoffFactor")
 def create_directory_structure():
     today = datetime.now()
     directory = os.path.join(
-        "recordings",
-        "testfm",
+        RECORDING_ROOT_DIR,
+        MOUNT_POINT,
         today.strftime("%Y"),
         today.strftime("%m"),
         today.strftime("%d"),
@@ -41,19 +62,19 @@ def create_directory_structure():
 
 def clean_audio(input_stream):
     return (
-        input_stream.filter("highpass", f=80)
-        .filter("lowpass", f=12000)
-        .filter("afftdn", nr=12, nt="w")
-        .filter("loudnorm", I=-16, TP=-1.5, LRA=11)
+        input_stream.filter("highpass", f=HIGHPASS_FILTER)
+        .filter("lowpass", f=LOWPASS_FILTER)
+        .filter("afftdn", nr=NOISE_REDUCTION, nt=NOISE_TYPE)
+        .filter("loudnorm", I=INTEGRATED_LOUDNESS_TARGET, TP=TRUE_PEAK, LRA=LOUDNESS_RANGE_TARGET)
     )
 
 
 @retry_on_failure()
 def process_audio(
-    input_source="default",
-    input_is_network=False,
-    stream_to_icecast=True,
-    save_locally=True,
+        input_source="default",
+        input_is_network=False,
+        stream_to_icecast=True,
+        save_locally=True,
 ):
     input_stream = ffmpeg.input(
         input_source if input_is_network else "default", f="pulse"
@@ -79,11 +100,11 @@ def output_to_icecast(split_stream):
     ffmpeg.output(
         split_stream[0],
         f"icecast://{ICECAST_USERNAME}:{ICECAST_PWD}@{ICECAST_URL}",
-        acodec="libopus",
-        format="ogg",
+        acodec=AUDIO_CODEC,
+        format=AUDIO_FORMAT,
         content_type="application/ogg",
-        audio_bitrate="96k",
-        buffer_size="512k",
+        audio_bitrate=STREAM_AUDIO_BITRATE,
+        buffer_size=BUFFER_SIZE,
     ).global_args("-hide_banner").run()
 
 
@@ -91,14 +112,15 @@ def output_to_icecast(split_stream):
 def output_to_file(split_stream):
     directory = create_directory_structure()
     datetime_now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"testfm_{datetime_now}.mp3"
+    filename = f"{MOUNT_POINT}_{datetime_now}.{LOCAL_AUDIO_FORMAT}"
+
     ffmpeg.output(
         split_stream[-1],
         os.path.join(directory, filename),
-        acodec="libmp3lame",
-        format="mp3",
-        audio_bitrate="192k",
-        t="01:10:00",
+        acodec=LOCAL_AUDIO_CODEC,
+        format=LOCAL_AUDIO_FORMAT,
+        audio_bitrate=LOCAL_AUDIO_BITRATE,
+        t=FILE_LENGTH,
     ).global_args("-hide_banner").run()
 
 
