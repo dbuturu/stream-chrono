@@ -74,6 +74,7 @@ def process_audio(
         threading.Thread(target=lambda: output_to_file(split_stream)).start()
 
 
+@retry_on_failure()
 def output_to_icecast(split_stream):
     ffmpeg.output(
         split_stream[0],
@@ -86,6 +87,7 @@ def output_to_icecast(split_stream):
     ).global_args("-hide_banner").run()
 
 
+@retry_on_failure()
 def output_to_file(split_stream):
     directory = create_directory_structure()
     datetime_now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

@@ -5,10 +5,16 @@ from functools import wraps
 
 def deferred_config_reload():
     """Reloads configuration settings dynamically for scheduled tasks."""
-    global config, SYNC_INTERVAL, REMOTE_SERVER_PATH
+    global config, SYNC_INTERVAL, REMOTE_SERVER_PATH, ICECAST_URL, ICECAST_USERNAME, ICECAST_PWD, MAX_RETRIES, RETRY_DELAY, BACKOFF_FACTOR
     config = load_config()
     SYNC_INTERVAL = config.getint("ScheduleSettings", "SyncInterval")
     REMOTE_SERVER_PATH = config.get("RemoteServer", "SyncPath")
+    ICECAST_URL = config.get("Icecast", "URL")
+    ICECAST_USERNAME = config.get("Icecast", "Username")
+    ICECAST_PWD = config.get("Icecast", "Password")
+    MAX_RETRIES = config.getint("RetrySettings", "MaxRetries")
+    RETRY_DELAY = config.getint("RetrySettings", "RetryDelay")
+    BACKOFF_FACTOR = config.getint("RetrySettings", "BackoffFactor")
 
 
 def load_config(config_file="config.ini"):
