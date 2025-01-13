@@ -9,7 +9,6 @@ from chronostreamer.utils import (
     deferred_config_reload,
 )
 
-# Load configuration from config.ini
 config = load_config()
 
 # Load Icecast and retry settings from config.ini
@@ -26,7 +25,9 @@ HIGHPASS_FILTER = config.getint("AudioSettings", "HighPassFilter")
 LOWPASS_FILTER = config.getint("AudioSettings", "LowPassFilter")
 NOISE_REDUCTION = config.getint("AudioSettings", "NoiseReduction")
 NOISE_TYPE = config.get("AudioSettings", "NoiseType")
-INTEGRATED_LOUDNESS_TARGET = config.getfloat("AudioSettings", "IntegratedLoudnessTarget")
+INTEGRATED_LOUDNESS_TARGET = config.getfloat(
+    "AudioSettings", "IntegratedLoudnessTarget"
+)
 LOUDNESS_RANGE_TARGET = config.getint("AudioSettings", "LoudnessRangeTarget")
 TRUE_PEAK = config.getfloat("AudioSettings", "TruePeak")
 AUDIO_CODEC = config.get("AudioSettings", "AudioCodec")
@@ -39,7 +40,8 @@ LOCAL_AUDIO_CODEC = config.get("LocalRecording", "AudioCodec")
 LOCAL_AUDIO_FORMAT = config.get("LocalRecording", "AudioFormat")
 LOCAL_AUDIO_BITRATE = config.get("LocalRecording", "AudioBitrate")
 FILE_LENGTH = config.get("LocalRecording", "FileLength")
-RECORDING_ROOT_DIR = config.get("LocalRecording", "RecordingRootDir") #"recordings"
+RECORDING_ROOT_DIR = config.get("LocalRecording", "RecordingRootDir")
+FILE_LENGTH = config.getint("LocalRecording", "FileLength")
 
 
 @retry_on_failure(
@@ -48,6 +50,7 @@ RECORDING_ROOT_DIR = config.get("LocalRecording", "RecordingRootDir") #"recordin
     backoff=BACKOFF_FACTOR,
 )
 def create_directory_structure():
+    # Adjusted to use RECORDING_ROOT_DIR from config
     today = datetime.now()
     directory = os.path.join(
         RECORDING_ROOT_DIR,
@@ -65,16 +68,21 @@ def clean_audio(input_stream):
         input_stream.filter("highpass", f=HIGHPASS_FILTER)
         .filter("lowpass", f=LOWPASS_FILTER)
         .filter("afftdn", nr=NOISE_REDUCTION, nt=NOISE_TYPE)
-        .filter("loudnorm", I=INTEGRATED_LOUDNESS_TARGET, TP=TRUE_PEAK, LRA=LOUDNESS_RANGE_TARGET)
+        .filter(
+            "loudnorm",
+            I=INTEGRATED_LOUDNESS_TARGET,
+            TP=TRUE_PEAK,
+            LRA=LOUDNESS_RANGE_TARGET,
+        )
     )
 
 
 @retry_on_failure()
 def process_audio(
-        input_source="default",
-        input_is_network=False,
-        stream_to_icecast=True,
-        save_locally=True,
+    input_source="default",
+    input_is_network=False,
+    stream_to_icecast=True,
+    save_locally=True,
 ):
     input_stream = ffmpeg.input(
         input_source if input_is_network else "default", f="pulse"
@@ -89,7 +97,10 @@ def process_audio(
 
     if stream_to_icecast:
         threading.Thread(
-            target=lambda: output_to_icecast(split_stream)).start()
+            target=lambda: output_to_icecast(
+                split_stream,
+            )
+        ).start()
 
     if save_locally:
         threading.Thread(target=lambda: output_to_file(split_stream)).start()
